@@ -1,22 +1,1348 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>欢乐工坊工作室</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#165DFF',
+            secondary: '#36CFC9',
+            accent: '#722ED1',
+            dark: '#1D2129',
+            'dark-light': '#4E5969',
+            light: '#F2F3F5',
+            'light-dark': '#C9CDD4'
+          },
+          fontFamily: {
+            inter: ['Inter', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      .bg-gradient-blue {
+        background: linear-gradient(135deg, #165DFF 0%, #722ED1 100%);
+      }
+      .transition-custom {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hover-scale {
+        transition: transform 0.3s ease;
+      }
+      .hover-scale:hover {
+        transform: scale(1.03);
+      }
+      .card-shadow {
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+      }
+      .nav-shadow {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      }
+      .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+      }
+      @keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .modal-enter {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      .modal-enter-active {
+        opacity: 1;
+        transform: scale(1);
+        transition: opacity 300ms, transform 300ms;
+      }
+      .modal-exit {
+        opacity: 1;
+      }
+      .modal-exit-active {
+        opacity: 0;
+        transform: scale(0.9);
+        transition: opacity 300ms, transform 300ms;
+      }
+    }
+  </style>
+  
+  <!-- 预加载Inter字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+  <!--加载过渡动画开始（一项实验性功能）-->
+  <div id="smart-loader">
+    <div class="loader-content">
+      <div class="bubble-spinner">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-text">
+          <span class="percent">0%</span>
+          <span class="status">正在准备...</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
+  <style>
+    #smart-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.4s ease, visibility 0.4s;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
 
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit">Greet</button>
-            </form>
-            <p id="greet-msg"></p>
-        </main>
-    </body>
+    #smart-loader.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .loader-content {
+      width: clamp(180px, 80vw, 280px);
+      padding: 20px 0;
+    }
+
+    .bubble-spinner {
+      display: flex;
+      justify-content: center;
+      margin-bottom: clamp(15px, 4vw, 25px);
+      height: clamp(24px, 6vw, 36px);
+    }
+
+    .bubble {
+      width: clamp(10px, 3vw, 14px);
+      height: clamp(10px, 3vw, 14px);
+      margin: 0 clamp(3px, 1vw, 6px);
+      background-color: #4a6cf7;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: bubble-bounce 1.2s infinite ease-in-out;
+    }
+
+    @keyframes bubble-bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0.4);
+        opacity: 0.4;
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .progress-container {
+      margin-top: clamp(12px, 3vw, 18px);
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: clamp(5px, 1.5vw, 8px);
+      font-size: clamp(12px, 3vw, 14px);
+    }
+
+    .percent {
+      color: #4a6cf7;
+      font-weight: 600;
+    }
+
+    .status {
+      color: #666;
+    }
+
+    .progress-track {
+      height: clamp(3px, 0.8vw, 4px);
+      background: rgba(0, 0, 0, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #4a6cf7, #3a5bd9);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* 移动端特定调整 */
+    @media (max-width: 480px) {
+      .loader-content {
+        padding: 15px 0;
+      }
+
+      .bubble-spinner {
+        margin-bottom: 18px;
+      }
+    }
+  </style>
+
+  <script>
+    (function() {
+      // 检测是否是浏览器前进/后退导航
+      const isNavigationBack = performance.navigation.type === 2 ||
+        (window.performance &&
+          performance.getEntriesByType('navigation')[0]?.type === 'back_forward');
+
+      // 如果是缓存导航，则不显示加载动画
+      if (isNavigationBack) {
+        const loader = document.getElementById('smart-loader');
+        if (loader) loader.remove();
+        return;
+      }
+
+      // 使用sessionStorage确保只加载一次
+      if (sessionStorage.getItem('pageAlreadyLoaded')) {
+        const loader = document.getElementById('smart-loader');
+        if (loader) loader.remove();
+        return;
+      }
+      sessionStorage.setItem('pageAlreadyLoaded', 'true');
+
+      const loader = document.getElementById('smart-loader');
+      const progressBar = document.querySelector('.progress-bar');
+      const percentEl = document.querySelector('.percent');
+      const statusEl = document.querySelector('.status');
+
+      // 配置参数
+      const MAX_LOAD_TIME = 5000; // 最大加载时间5秒
+      const MIN_LOAD_TIME = 1200; // 最小显示时间1.2秒
+      const LOAD_STAGES = [{
+          progress: 0,
+          text: "正在准备..."
+        },
+        {
+          progress: 15,
+          text: "加载资源..."
+        },
+        {
+          progress: 40,
+          text: "解析内容..."
+        },
+        {
+          progress: 70,
+          text: "渲染界面..."
+        },
+        {
+          progress: 90,
+          text: "最终优化..."
+        }
+      ];
+
+      let startTime = Date.now();
+      let resources = [];
+      let loadedResources = 0;
+      let totalResources = 0;
+      let isTrackingResources = false;
+
+      // 初始化资源跟踪
+      function initResourceTracking() {
+        if (!window.performance || !performance.getEntriesByType) return;
+
+        // 获取已有资源
+        resources = performance.getEntriesByType('resource');
+        totalResources = resources.length;
+
+        // 设置MutationObserver监听新添加的资源
+        const observer = new PerformanceObserver((list) => {
+          const newResources = list.getEntriesByType('resource');
+          resources = resources.concat(newResources);
+          totalResources = resources.length;
+        });
+        observer.observe({
+          type: 'resource',
+          buffered: true
+        });
+
+        isTrackingResources = true;
+        updateResourceCount();
+      }
+
+      // 更新资源加载计数
+      function updateResourceCount() {
+        if (!isTrackingResources) return;
+
+        loadedResources = resources.filter(r => r.duration > 0).length;
+
+        if (loadedResources < totalResources) {
+          requestAnimationFrame(updateResourceCount);
+        }
+      }
+
+      // 计算真实加载进度 (0-90)
+      function getRealProgress() {
+        if (!isTrackingResources || totalResources === 0) return 0;
+        return (loadedResources / totalResources) * 90;
+      }
+
+      // 更新进度显示
+      function updateProgress(percent) {
+        const progress = Math.min(percent, 100);
+        progressBar.style.width = progress + '%';
+        percentEl.textContent = Math.floor(progress) + '%';
+
+        // 更新状态文本
+        const currentStage = LOAD_STAGES.reduce((prev, curr) =>
+          progress >= curr.progress ? curr : prev
+        );
+        statusEl.textContent = currentStage.text;
+      }
+
+      // 混合进度计算
+      function calculateProgress() {
+        const elapsed = Date.now() - startTime;
+        const timeProgress = (elapsed / MAX_LOAD_TIME) * 90;
+        const realProgress = getRealProgress();
+
+        // 智能混合进度 (优先真实进度)
+        let currentProgress;
+        if (elapsed < MIN_LOAD_TIME) {
+          // 初始阶段使用时间进度
+          currentProgress = timeProgress;
+        } else if (isTrackingResources && totalResources > 0) {
+          // 有资源跟踪时使用加权平均
+          currentProgress = (realProgress * 0.7) + (timeProgress * 0.3);
+        } else {
+          // 无资源跟踪时使用时间进度
+          currentProgress = timeProgress;
+        }
+
+        updateProgress(currentProgress);
+
+        // 检查完成条件
+        const isComplete = document.readyState === 'complete' ||
+          elapsed >= MAX_LOAD_TIME ||
+          (isTrackingResources && loadedResources >= totalResources && totalResources > 0);
+
+        if (isComplete) {
+          completeLoading();
+        } else {
+          requestAnimationFrame(calculateProgress);
+        }
+      }
+
+      // 完成加载
+      function completeLoading() {
+        updateProgress(100);
+        statusEl.textContent = "准备就绪!";
+
+        // 确保最小显示时间
+        const elapsed = Date.now() - startTime;
+        const remainingTime = Math.max(0, MIN_LOAD_TIME - elapsed);
+
+        setTimeout(() => {
+          loader.classList.add('hidden');
+          loader.addEventListener('transitionend', () => {
+            if (loader.parentNode) loader.parentNode.removeChild(loader);
+          });
+        }, remainingTime);
+      }
+
+      // 启动加载过程
+      initResourceTracking();
+      calculateProgress();
+
+      // 页面加载完成时加速进度
+      if (document.readyState === 'complete') {
+        updateProgress(95);
+      } else {
+        window.addEventListener('load', () => {
+          updateProgress(95);
+        });
+      }
+    })();
+  </script>
+  <!--过渡结束-->
+
+<body class="font-inter text-dark bg-white overflow-x-hidden">
+  <!-- 导航栏 -->
+  <header id="navbar" class="fixed w-full top-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-sm nav-shadow">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+        <!-- Logo -->
+        <div class="flex items-center">
+          <a href="#" class="flex items-center">
+            <div class="w-10 h-10 rounded-lg bg-gradient-blue flex items-center justify-center">
+              <i class="fa fa-bolt text-white text-xl"></i>
+            </div>
+            <span class="ml-2 text-xl font-bold text-dark">欢乐工坊工作室</span>
+          </a>
+        </div>
+        
+        <!-- 桌面导航 -->
+        <nav class="hidden md:flex space-x-8">
+          <a href="#features" class="text-dark-light hover:text-primary transition-custom font-medium">服务</a>
+          <a href="#news" class="text-dark-light hover:text-primary transition-custom font-medium">官方资讯</a>
+          <a href="#testimonials" class="text-dark-light hover:text-primary transition-custom font-medium">创始人</a>
+          <a href="#faq" class="text-dark-light hover:text-primary transition-custom font-medium">常见问题</a>
+        </nav>
+        
+        <!-- CTA按钮 -->
+        <div class="hidden md:flex items-center space-x-4">
+          <a href="https://ecnlh84m8uat.feishu.cn/share/base/form/shrcnXx9muF0ZeRH4MjEr7IBbKc" class="px-5 py-2.5 text-primary hover:text-primary/80 font-medium transition-custom">加入我们</a>
+          <a href="https://hlgf001.top/index/forums" class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg shadow-primary/20 transition-custom">前往社区</a>
+        </div>
+        
+        <!-- 移动菜单按钮 -->
+        <div class="md:hidden">
+          <button id="menu-toggle" class="text-dark hover:text-primary focus:outline-none">
+            <i class="fa fa-bars text-2xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 移动导航 -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-light-dark">
+      <div class="px-4 py-5 space-y-3">
+        <a href="#features" class="block text-dark-light hover:text-primary transition-custom font-medium py-2">服务</a>
+        <a href="#news" class="block text-dark-light hover:text-primary transition-custom font-medium py-2">官方资讯</a>
+        <a href="#testimonials" class="block text-dark-light hover:text-primary transition-custom font-medium py-2">创始人</a>
+        <a href="#faq" class="block text-dark-light hover:text-primary transition-custom font-medium py-2">常见问题</a>
+        <div class="pt-3 flex flex-col space-y-3">
+          <a href="https://ecnlh84m8uat.feishu.cn/share/base/form/shrcnXx9muF0ZeRH4MjEr7IBbKc" class="px-5 py-2.5 text-center text-primary hover:text-primary/80 font-medium border border-primary/20 rounded-lg transition-custom">加入我们</a>
+          <a href="https://hlgf001.top/index/forums" class="px-5 py-2.5 text-center bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg shadow-primary/20 transition-custom">前往社区</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 英雄区域 -->
+  <section class="pt-32 pb-20 md:pt-40 md:pb-28 bg-gradient-to-b from-light/50 to-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center">
+        <div class="md:w-1/2 mb-12 md:mb-0">
+          <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
+            <i class="fa fa-rocket mr-2"></i>Welcome
+          </span>
+          <h1 class="text-[clamp(2.5rem,5vw,4rem)] font-bold leading-tight text-dark mb-6">
+            欢迎来到<span class="text-primary">迷你世界欢乐工坊玩家创作工作室</span>
+          </h1>
+          <p class="text-[clamp(1rem,2vw,1.25rem)] text-dark-light mb-8 max-w-xl">
+创造无边界，收获无限快乐。
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <a href="https://hlgf001.top/index" class="px-8 py-4 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-xl shadow-primary/20 transition-custom text-center">
+              前往主页
+              <i class="fa fa-arrow-right ml-2"></i>
+            </a>
+            <a href="https://www.bilibili.com/video/BV17E7pznEKT/?share_source=copy_web&vd_source=32dc37e3820fc594993a65d3723a3ae5" id="video-btn" class="px-8 py-4 bg-white hover:bg-light border border-light-dark text-dark font-medium rounded-lg shadow-lg transition-custom text-center flex items-center justify-center">
+              <i class="fa fa-play-circle text-primary mr-2"></i>
+              了解我们
+            </a>
+          </div>
+          <div class="mt-10 flex items-center">
+            <div class="flex -space-x-2">
+       
+            </div>
+            <div class="ml-4">
+              <div class="flex items-center mb-1">
+                <div class="flex">
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                  <i class="fa fa-star text-yellow-400"></i>
+                </div>
+                <span class="ml-2 font-medium">5/5</span>
+              </div>
+              <p class="text-sm text-dark-light">迷你世界工作室</p>
+            </div>
+          </div>
+        </div>
+        <div class="md:w-1/2 relative">
+          <div class="relative z-10 bg-white rounded-2xl shadow-2xl overflow-hidden hover-scale">
+            <img src="igame.png" alt="主页图片" class="w-full h-auto">
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-dark/70 to-transparent p-6">
+              <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <i class="fa fa-chart-line text-primary text-xl"></i>
+                </div>
+                <div class="ml-4">
+                  <h3 class="text-white font-semibold">欢乐工坊工作室</h3>
+                  <p class="text-white/80 text-sm">别想太多，造就对了！</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 装饰元素 -->
+          <div class="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+          <div class="absolute -z-10 -top-10 -right-10 w-40 h-40 bg-secondary/20 rounded-full blur-xl"></div>
+          <div class="absolute -z-10 -bottom-10 -left-10 w-40 h-40 bg-accent/20 rounded-full blur-xl"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 受信任的公司 -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-center text-dark-light mb-10">迷你世界新晋工作室</p>
+      <div class="flex flex-wrap justify-center items-center gap-10 md:gap-16">
+                </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 功能部分 -->
+  <section id="features" class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+          <i class="fa fa-cogs mr-2"></i>工作室服务
+        </span>
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-6">我们可以提供许多的服务</h2>
+        <p class="text-dark-light text-lg">欢乐工坊将提供一系列的创作扶持</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- 功能1 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+            <i class="fa fa-chart-pie text-primary text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">作品推流</h3>
+          <p class="text-dark-light mb-6">迷你世界地图与模组推荐</p>
+          <a href="#" class="text-primary font-medium flex items-center">
+            了解更多
+            <i class="fa fa-arrow-right ml-2 text-sm"></i>
+          </a>
+        </div>
+
+        <!-- 功能2 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="w-14 h-14 rounded-lg bg-secondary/10 flex items-center justify-center mb-6">
+            <i class="fa fa-users text-secondary text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">团队协作</h3>
+          <p class="text-dark-light mb-6">与团队共同创作，一起联机。</p>
+          <a href="#" class="text-secondary font-medium flex items-center">
+            了解更多
+            <i class="fa fa-arrow-right ml-2 text-sm"></i>
+          </a>
+        </div>
+
+        <!-- 功能3 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="w-14 h-14 rounded-lg bg-accent/10 flex items-center justify-center mb-6">
+            <i class="fa fa-calendar-check text-accent text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">创作帮助</h3>
+          <p class="text-dark-light mb-6">我们提供了许多的教程，提高工作效率。</p>
+          <a href="#" class="text-accent font-medium flex items-center">
+            了解更多
+            <i class="fa fa-arrow-right ml-2 text-sm"></i>
+          </a>
+        </div>
+
+        <!-- 功能4 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+            <i class="fa fa-shield-alt text-primary text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">互相交流</h3>
+          <p class="text-dark-light mb-6">提供了交流大平台，上线社区。</p>
+          <a href="#" class="text-primary font-medium flex items-center">
+            了解更多
+            <i class="fa fa-arrow-right ml-2 text-sm"></i>
+          </a>
+        </div>
+
+                  </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 分析仪表盘部分 -->
+  <section class="py-20 bg-gradient-to-b from-light/50 to-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row items-center gap-12">
+        <div class="lg:w-1/2">
+          <div class="relative">
+            <div class="bg-white rounded-2xl overflow-hidden shadow-2xl card-shadow hover-scale">
+              <div class="bg-dark p-4 flex items-center justify-between">
+                <div class="flex items-center">
+                  <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                  <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                  <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="text-white text-sm">创作教学多样化</div>
+                <div class="flex items-center">
+                  <i class="fa fa-refresh text-white mr-3"></i>
+                  <i class="fa fa-expand text-white"></i>
+                </div>
+              </div>
+              <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="text-lg font-semibold">教程示例</h3>
+                  <div class="flex space-x-2">
+                    <button class="px-3 py-1 text-xs bg-light rounded-md">日</button>
+                    <button class="px-3 py-1 text-xs bg-primary text-white rounded-md">周</button>
+                    <button class="px-3 py-1 text-xs bg-light rounded-md">月</button>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                  <div class="bg-light p-4 rounded-lg">
+                    <p class="text-dark-light text-sm mb-1">UGC2.0触发器教程</p>
+                    <div class="flex items-end">
+                      <span class="text-2xl font-bold">UGC2.0（高级创造）触发器教学</span>
+                      <span class="ml-2 text-green-500 text-sm flex items-center">
+                        <i class="fa fa-arrow-up mr-1"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="bg-light p-4 rounded-lg">
+                    <p class="text-dark-light text-sm mb-1">界面设计</p>
+                    <div class="flex items-end">
+                      <span class="text-2xl font-bold">通过强大的ui编辑器来构建好看的界面</span>
+                      <span class="ml-2 text-green-500 text-sm flex items-center">
+                        <i class="fa fa-arrow-up mr-1"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="bg-light p-4 rounded-lg">
+                    <p class="text-dark-light text-sm mb-1">环境与视觉效果制作</p>
+                    <div class="flex items-end">
+                      <span class="text-2xl font-bold">修改天空盒的参数和调整滤镜效果，一起创造属于自己的天空魔法</span>
+                      <span class="ml-2 text-red-500 text-sm flex items-center">
+                        <i class="fa fa-arrow-down mr-1"></i>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="bg-light p-4 rounded-lg">
+                    <p class="text-dark-light text-sm mb-1">mod与组件的制作</p>
+                    <div class="flex items-end">
+                      <span class="text-2xl font-bold">学习UGC3.0的创作，为模组生态贡献自己的一份力。</span>
+                      <span class="ml-2 text-green-500 text-sm flex items-center">
+                        <i class="fa fa-arrow-up mr-1"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-light p-4 rounded-lg h-64">
+<p><strong><font color="blue"> <a href="https://hlgf001.top/index/wiki/trigger/ugc2.0/lua/class1.html">学习第一课</font><strong></a> 立即前往试学我们的第一个课程！</p>
+                  <canvas id="analyticsChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <!-- 装饰元素 -->
+            <div class="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+            <div class="absolute -z-10 -top-5 -right-5 w-32 h-32 bg-secondary/20 rounded-full blur-xl"></div>
+          </div>
+        </div>
+        <div class="lg:w-1/2">
+          <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+            <i class="fa fa-chart-line mr-2"></i>有专门的教学创作平台
+          </span>
+          <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-6">通过视频学习增长创作的技巧</h2>
+          <p class="text-dark-light text-lg mb-8">我们提供了许多的触发器与脚本教学支持，希望可以对你有所帮助。</p>
+          
+          <div class="space-y-6">
+            <div class="flex items-start">
+              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mt-1 flex-shrink-0">
+                <i class="fa fa-check text-primary"></i>
+              </div>
+              <div class="ml-4">
+                <h4 class="text-lg font-semibold mb-2">简单的教学例子</h4>
+                <p class="text-dark-light">使用简单易懂的基础案例学习。</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mt-1 flex-shrink-0">
+                <i class="fa fa-check text-primary"></i>
+              </div>
+              <div class="ml-4">
+                <h4 class="text-lg font-semibold mb-2">根据进度来进阶</h4>
+                <p class="text-dark-light">由简到繁，合理安排学习进度</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mt-1 flex-shrink-0">
+                <i class="fa fa-check text-primary"></i>
+              </div>
+              <div class="ml-4">
+                <h4 class="text-lg font-semibold mb-2">详细化讲解</h4>
+                <p class="text-dark-light">一对一傻瓜式讲解，不怕不懂</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-10">
+            <a href="https://hlgf001.top/ugc" class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg shadow-primary/20 transition-custom">
+              立即查看教程
+              <i class="fa fa-arrow-right ml-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 官方资讯部分 -->
+  <section id="news" class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+          <i class="fa fa-newspaper mr-2"></i>官方资讯
+        </span>
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-6">最新动态与产品更新</h2>
+        <p class="text-dark-light text-lg">了解欢乐工坊的最新资讯、活动公告。</p>
+      </div>
+
+      <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- 加载状态 -->
+        <div id="loading-indicator" class="lg:col-span-3 flex justify-center items-center py-10">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+        
+        <!-- 文章将通过JavaScript动态加载 -->
+      </div>
+
+      <div class="mt-12 text-center">
+        <a href="#" id="load-more" class="inline-flex items-center px-6 py-3 bg-white border border-primary text-primary hover:bg-primary/5 font-medium rounded-lg transition-custom">
+          加载更多
+          <i class="fa fa-refresh ml-2"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 客户评价部分 -->
+  <section id="testimonials" class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+          <i class="fa fa-comments mr-2"></i>玩家评价
+        </span>
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-6">创始员介绍</h2>
+        <p class="text-dark-light text-lg">加入欢乐工坊一起创作无限乐趣！</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- 评价1 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="flex items-center mb-6">
+            <img src="igame/1.jpg" alt="玩家头像" class="w-14 h-14 rounded-full object-cover">
+            <div class="ml-4">
+              <h4 class="font-semibold">小夜呐づ</h4>
+              <p class="text-dark-light text-sm">欢乐工坊创始人、资深地图创作者</p>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="flex">
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+            </div>
+          </div>
+      
+        </div>
+
+        <!-- 评价2 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="flex items-center mb-6">
+            <img src="igame/2.jpg" alt="玩家头像" class="w-14 h-14 rounded-full object-cover">
+            <div class="ml-4">
+              <h4 class="font-semibold">远见</h4>
+              <p class="text-dark-light text-sm">创始员</p>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="flex">
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+            </div>
+          </div>
+                  </div>
+
+        <!-- 评价3 -->
+        <div class="bg-white rounded-xl p-8 card-shadow hover-scale">
+          <div class="flex items-center mb-6">
+            <img src="igame/3.jpg" alt="玩家头像" class="w-14 h-14 rounded-full object-cover">
+            <div class="ml-4">
+              <h4 class="font-semibold">AAA-BvvD黑奴批发商</h4>
+              <p class="text-dark-light text-sm">创始人</p>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="flex">
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+              <i class="fa fa-star text-yellow-400"></i>
+            </div>
+          </div>
+                 </div>
+      </div>
+
+      <div class="mt-16 flex justify-center">
+        <div class="bg-light rounded-xl p-8 max-w-4xl w-full">
+          <div class="flex flex-col md:flex-row items-center">
+            <div class="md:w-2/3 mb-6 md:mb-0 md:pr-8">
+              <h3 class="text-2xl font-bold text-dark mb-4">准备好开始创作了吗？</h3>
+              <p class="text-dark-light">加入欢乐工坊，与万千创作者一起分享你的创意世界。</p>
+            </div>
+            <div class="md:w-1/3 flex flex-col sm:flex-row gap-4">
+              <a href="https://ecnlh84m8uat.feishu.cn/share/base/form/shrcnXx9muF0ZeRH4MjEr7IBbKc" class="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg shadow-primary/20 transition-custom text-center">
+                立即加入
+              </a>
+              <a href="faq.htm" class="px-6 py-3 bg-white hover:bg-light border border-light-dark text-dark font-medium rounded-lg transition-custom text-center">
+                了解详情
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <!-- 常见问题部分 -->
+  <section id="faq" class="py-20 bg-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+          <i class="fa fa-question-circle mr-2"></i>常见问题
+        </span>
+        <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold text-dark mb-6">有疑问？我们有答案</h2>
+        <p class="text-dark-light text-lg">查找关于欢乐工坊的常见问题解答。</p>
+      </div>
+
+      <div class="max-w-3xl mx-auto">
+        <div class="space-y-6">
+          <!-- FAQ项目1 -->
+          <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-4 text-left font-medium flex justify-between items-center focus:outline-none">
+              <span>欢乐工坊工作室是什么？</span>
+              <i class="fa fa-chevron-down text-dark-light transition-transform"></i>
+            </button>
+            <div class="faq-content px-6 py-4 pt-0 text-dark-light hidden">
+              <p>欢乐工坊工作室是迷你世界玩家创建的玩家工作室，提供创作工具、资源分享、团队协作，帮助玩家更高效地创作和分享迷你世界作品。</p>
+            </div>
+          </div>
+
+          <!-- FAQ项目2 -->
+          <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-4 text-left font-medium flex justify-between items-center focus:outline-none">
+              <span>如何加入欢乐工坊？</span>
+              <i class="fa fa-chevron-down text-dark-light transition-transform"></i>
+            </button>
+            <div class="faq-content px-6 py-4 pt-0 text-dark-light hidden">
+              <p>只需点击网站上的"加入我们"按钮或者是"立即加入"按钮，填写相关信息，都可以加入了哦~</p>
+            </div>
+          </div>
+
+          <!-- FAQ项目3 -->
+          <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-4 text-left font-medium flex justify-between items-center focus:outline-none">
+              <span>作品版权归谁所有？</span>
+              <i class="fa fa-chevron-down text-dark-light transition-transform"></i>
+            </button>
+            <div class="faq-content px-6 py-4 pt-0 text-dark-light hidden">
+              <p>你在欢乐工坊创作的所有作品版权归工作室所有。但是在你退出之前你仍然拥有该作品的版权。但你需要确保你的作品不侵犯他人知识产权。</p>
+            </div>
+          </div>
+
+          <!-- FAQ项目4 -->
+          <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-4 text-left font-medium flex justify-between items-center focus:outline-none">
+              <span>我可以申请多个部门吗</span>
+              <i class="fa fa-chevron-down text-dark-light transition-transform"></i>
+            </button>
+            <div class="faq-content px-6 py-4 pt-0 text-dark-light hidden">
+              <p>由于避免管理过于麻烦，所以不支持多部门的，但是若有需求可向室长申请。</p>
+            </div>
+          </div>
+
+          <!-- FAQ项目5 -->
+          <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-4 text-left font-medium flex justify-between items-center focus:outline-none">
+              <span>都有哪些部门</span>
+              <i class="fa fa-chevron-down text-dark-light transition-transform"></i>
+            </button>
+            <div class="faq-content px-6 py-4 pt-0 text-dark-light hidden">
+              <p>1. 建筑部门
+              <p>2. 玩法部门
+               <p> 3. 模型部门
+                <p> 4. 宣传部门
+                 <p>  5. 技术
+                  <p>  6. 部门分配
+                   <p>7. 审核
+                    <p>8.文创部门
+<p><strong><font color="blue"> <a href="https://ecnlh84m8uat.feishu.cn/wiki/HgKwwt7xHiy6Yikpi6hc1UUxnbb">你可以前往了解</font><strong></a> </p>
+</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 视频弹窗 -->
+  <div id="video-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark/70 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="relative w-full max-w-4xl p-4 transform scale-95 transition-transform duration-300">
+      <div class="bg-white rounded-xl overflow-hidden shadow-2xl">
+        <div class="flex justify-end p-4">
+          <button id="close-modal" class="text-dark-light hover:text-dark">
+            <i class="fa fa-times text-xl"></i>
+          </button>
+        </div>
+       <div class="h-[500px] bg-light"> <!-- 使用固定高度 --> <iframe id="bilibili-video" width="100%" height="100%" src="https://player.bilibili.com/player.html?isOutside=true&aid=114597126214364&bvid=BV17E7pznEKT&cid=30233788712&p=1" frameborder="0" allowfullscreen></iframe> </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA部分 -->
+  <section class="py-24 bg-gradient-blue text-white">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold mb-6">准备好开启创作之旅了吗？</h2>
+      <p class="text-white/80 text-lg max-w-2xl mx-auto mb-10">加入欢乐工坊，与万千创作者一起分享你的迷你世界创意，获得更多曝光和支持。</p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <a href="https://ecnlh84m8uat.feishu.cn/share/base/form/shrcnXx9muF0ZeRH4MjEr7IBbKc" class="px-8 py-4 bg-white text-primary hover:bg-light font-medium rounded-lg shadow-xl transition-custom">
+          立即加入
+          <i class="fa fa-arrow-right ml-2"></i>
+        </a>
+        <a href="https://hlgf001.top/ugc" class="px-8 py-4 bg-transparent hover:bg-white/10 border border-white text-white font-medium rounded-lg transition-custom">
+          浏览创作文档
+        </a>
+
+      </div>
+    
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+        <div class="lg:col-span-2">
+          <div class="flex items-center mb-6">
+            <div class="w-10 h-10 rounded-lg bg-gradient-blue flex items-center justify-center">
+              <i class="fa fa-bolt text-white text-xl"></i>
+            </div>
+            <span class="ml-2 text-xl font-bold text-white">欢乐工坊工作室</span>
+          </div>
+          <p class="text-white/60 mb-6 max-w-md">专注于迷你世界玩家创作的平台，提供创作工具、资源分享、团队协作等功能，帮助玩家更高效地创作和分享迷你世界作品。</p>
+          <div class="flex space-x-4">
+            <a href="https://live.kuaishou.com/profile/a826051978" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-custom">
+  <img src="kuaishou.svg" alt="快手" class="w-5 h-5">
+</a>
+
+<a href="https://space.bilibili.com/690542467" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-custom">
+  <img src="bilibili.svg" alt="哔哩哔哩" class="w-5 h-5">
+</a>
+
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-6">产品</h4>
+          <ul class="space-y-3">
+            <li><a href="#features" class="text-white/60 hover:text-white transition-custom">工作室服务</a></li>
+            <li><a href="#news" class="text-white/60 hover:text-white transition-custom">官方资讯</a></li>
+            <li><a href="#testimonials" class="text-white/60 hover:text-white transition-custom">创始团队</a></li>
+            <li><p>官方qq：2904310938</a><p></li>
+            <li><p>官方邮箱：2904310938@qq.com</a><p></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-6">资源</h4>
+          <ul class="space-y-3">
+            <li><a href="https://hlgf001.top/ugc" class="text-white/60 hover:text-white transition-custom">创作教程</a></li>
+            <li><a href="https://hlgf001.top/ugc" class="text-white/60 hover:text-white transition-custom">API文档</a></li>
+            <li><a href="https://hlgf001.top/index/forums" class="text-white/60 hover:text-white transition-custom">创作者社区</a></li>
+            <li><a href="news.html" class="text-white/60 hover:text-white transition-custom">活动公告</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-6">关于我们</h4>
+          <ul class="space-y-3">
+            <li><a href="faq.htm" class="text-white/60 hover:text-white transition-custom">团队介绍</a></li>
+            <li><a href="https://ecnlh84m8uat.feishu.cn/share/base/form/shrcnXx9muF0ZeRH4MjEr7IBbKc" class="text-white/60 hover:text-white transition-custom">加入我们</a></li>
+            <li><a href="help.htm" class="text-white/60 hover:text-white transition-custom">联系方式</a></li>
+            
+   
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-white/60 text-sm mb-4 md:mb-0">© 2025 欢乐工坊工作室. 保留所有权利。</p>
+        <!--备案-->
+<link rel="stylesheet" href="https://scdn.星.fun/icp.css">
+<div class="github-badge">
+  <span class="badge-subject">雾备</span>
+  <a style="color:#fff" href="https://icp.wudu.ltd/id.php?keyword=17705432" rel="external" target="_blank">
+    <span class="badge-value bg-cai">17705432号</span>
+  </a>
+</div>
+<!--备案end-->
+
+<!--安全签章-->
+ <div title="MySSL 安全签章" id="myssl_seal" onclick="window.open('https://myssl.com/seal/detail?domain=hlgf001.top','MySSL安全签章','height=800,width=470,top=0,right=0,toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,status=no')" style="text-align: center"><img src="https://sealres.myssl.com/seal/img/1x/seal.png?domain=hlgf001.top" alt="MySSL 安全签章" style="width: 100px; height: auto; cursor: pointer"></div>
+<!--安全签章end-->
+        </div>
+        <div class="flex space-x-6">
+          
+          
+        </div>
+      </div>
+    </div>
+<!--底部波浪开始-->
+<div class="wiiuii_layout">
+<svg class="editorial"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 24 150 28"
+     preserveAspectRatio="none">
+ <defs>
+ <path id="gentle-wave"
+ d="M-160 44c30 0 
+    58-18 88-18s
+    58 18 88 18 
+    58-18 88-18 
+    58 18 88 18
+    v44h-352z" />
+  </defs>
+  <g class="parallax">
+   <use xlink:href="#gentle-wave" rel="external nofollow"  rel="external nofollow"  rel="external nofollow"  x="50" y="0" fill="#4579e2"/>
+   <use xlink:href="#gentle-wave" rel="external nofollow"  rel="external nofollow"  rel="external nofollow"  x="50" y="3" fill="#3461c1"/>
+   <use xlink:href="#gentle-wave" rel="external nofollow"  rel="external nofollow"  rel="external nofollow"  x="50" y="6" fill="#2d55aa"/>  
+  </g>
+</svg>
+</div>
+<style type='text/css'>
+.parallax > use{animation: move-forever 12s linear infinite;}.parallax > use:nth-child(1){animation-delay: -2s;}.parallax > use:nth-child(2){animation-delay: -2s; animation-duration: 5s;}.parallax > use:nth-child(3){animation-delay: -4s; animation-duration: 3s;}@keyframes move-forever{0%{transform: translate(-90px, 0%);} 100%{transform: translate(85px, 0%);}}.wiiuii_layout{width: 100%;height: 40px;position: relative;overflow: hidden;z-index: 1;background: var(--footer-bg);}.editorial{display: block; width: 100%; height: 40px; margin: 0;}
+</style>
+<!--底部波浪结束-->
+  </footer>
+
+
+  <script>
+    // WordPress API 集成
+    document.addEventListener('DOMContentLoaded', function() {
+      // WordPress API 配置（请替换为您的WordPress网站URL和分类ID）
+      const wpConfig = {
+        baseUrl: 'https://hlgf001.top/index/wp-json', // 替换为您的WordPress域名
+        categoryId: 2, // 官方资讯分类ID，需在WordPress中确认
+        postsPerPage: 6 // 每页显示的文章数量
+      };
+
+      // 存储已加载的文章页码
+      let currentPage = 1;
+      let isLoading = false;
+
+      // 获取文章数据
+      async function fetchNewsArticles(page = 1, isInitialLoad = true) {
+        // 防止重复加载
+        if (isLoading) return;
+        isLoading = true;
+
+        try {
+          // 显示加载状态
+          if (isInitialLoad) {
+            document.getElementById('loading-indicator').classList.remove('hidden');
+            document.getElementById('news-container').innerHTML = '';
+          } else {
+            // 添加加载动画到列表底部
+            const loadingElement = document.createElement('div');
+            loadingElement.className = 'lg:col-span-3 flex justify-center py-6';
+            loadingElement.innerHTML = '<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>';
+            document.getElementById('news-container').appendChild(loadingElement);
+          }
+
+          // 构建API请求URL（先获取置顶文章，再获取普通文章）
+          const stickyPostsUrl = `${wpConfig.baseUrl}/wp/v2/posts?categories=${wpConfig.categoryId}&sticky=true&per_page=${wpConfig.postsPerPage}&page=${page}`;
+          const normalPostsUrl = `${wpConfig.baseUrl}/wp/v2/posts?categories=${wpConfig.categoryId}&sticky=false&per_page=${wpConfig.postsPerPage}&page=${page}`;
+
+          // 并行获取置顶文章和普通文章
+          const [stickyResponse, normalResponse] = await Promise.all([
+            fetch(stickyPostsUrl),
+            fetch(normalPostsUrl)
+          ]);
+
+          // 检查响应状态
+          if (!stickyResponse.ok || !normalResponse.ok) {
+            throw new Error(`API请求失败: ${stickyResponse.status} ${normalResponse.status}`);
+          }
+
+          // 解析JSON数据
+          const stickyPosts = await stickyResponse.json();
+          const normalPosts = await normalResponse.json();
+
+          // 合并文章（置顶文章在前）
+          const allPosts = [...stickyPosts, ...normalPosts];
+
+          // 渲染文章列表
+          renderNewsArticles(allPosts, isInitialLoad);
+
+          // 隐藏加载状态
+          document.getElementById('loading-indicator').classList.add('hidden');
+          currentPage = page;
+
+          // 检查是否还有更多文章
+          const totalPages = parseInt(normalResponse.headers.get('X-WP-TotalPages') || 1);
+          if (page >= totalPages) {
+            document.getElementById('load-more').classList.add('hidden');
+            document.getElementById('load-more').textContent = '没有更多文章了';
+          } else {
+            document.getElementById('load-more').dataset.page = page + 1;
+            document.getElementById('load-more').classList.remove('hidden');
+          }
+
+        } catch (error) {
+          console.error('获取文章失败:', error);
+          document.getElementById('loading-indicator').classList.add('hidden');
+          
+          // 显示错误信息
+          const errorElement = document.createElement('div');
+          errorElement.className = 'lg:col-span-3 text-center py-10';
+          errorElement.innerHTML = `
+            <div class="text-red-500 mb-4"><i class="fa fa-exclamation-triangle text-3xl"></i></div>
+            <h3 class="text-xl font-semibold mb-2">加载文章失败</h3>
+            <p class="text-dark-light">无法获取官方资讯文章，请检查WordPress API配置或稍后再试。</p>
+          `;
+          document.getElementById('news-container').appendChild(errorElement);
+        } finally {
+          isLoading = false;
+        }
+      }
+
+      // 渲染文章列表
+      function renderNewsArticles(posts, isInitialLoad) {
+        const container = document.getElementById('news-container');
+        
+        // 如果是初始加载，清空容器；否则保留现有内容
+        if (isInitialLoad && posts.length > 0) {
+          container.innerHTML = '';
+        }
+        
+        // 如果没有文章，显示空状态
+        if (posts.length === 0) {
+          container.innerHTML = `
+            <div class="lg:col-span-3 text-center py-10">
+              <div class="text-dark-light/50 mb-4"><i class="fa fa-newspaper text-5xl"></i></div>
+              <h3 class="text-xl font-semibold mb-2">暂无官方资讯</h3>
+              <p class="text-dark-light">我们正在准备最新资讯，请稍后查看。</p>
+            </div>
+          `;
+          return;
+        }
+
+        // 渲染每篇文章
+        posts.forEach(post => {
+          const isSticky = post.sticky;
+          const postElement = document.createElement('article');
+          postElement.className = 'bg-white rounded-xl overflow-hidden card-shadow hover-scale transition-custom';
+          
+          // 获取文章特色图片，若无则使用默认图片
+          const featuredImage = post._embedded && post._embedded['wp:featuredmedia'] 
+            ? post._embedded['wp:featuredmedia'][0].source_url 
+            : 'http://hlgf.dpdns.org/view.php/ef72e5c405bd9b1253413f62b4e7ec44.jpg' + post.id;
+      
+          // 格式化日期
+          const date = new Date(post.date);
+          const formattedDate = date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+          
+          // 获取作者名称
+          const authorName = post._embedded && post._embedded['author'] 
+            ? post._embedded['author'][0].name 
+            : '欢乐工坊团队';
+          
+          postElement.innerHTML = `
+            <div class="relative">
+              <img src="${featuredImage}" alt="${post.title.rendered}" class="w-full h-48 object-cover">
+              ${isSticky ? 
+                '<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">置顶</div>' : 
+                ''
+              }
+            </div>
+            <div class="p-6">
+              <div class="flex items-center text-sm text-dark-light mb-3">
+                <span><i class="fa fa-calendar-days mr-1"></i> ${formattedDate}</span>
+                <span class="mx-3">•</span>
+                <span><i class="fa fa-user mr-1"></i> ${authorName}</span>
+              </div>
+              <h3 class="text-xl font-semibold mb-3 hover:text-primary transition-custom">
+                <a href="${post.link}" target="_blank">${post.title.rendered}</a>
+              </h3>
+              <p class="text-dark-light mb-4 line-clamp-3">${post.excerpt.rendered.replace(/<[^>]+>/g, '').substring(0, 100) + '...'}</p>
+              <a href="${post.link}" target="_blank" class="inline-flex items-center text-primary font-medium text-sm">
+                阅读更多 <i class="fa fa-arrow-right ml-1"></i>
+              </a>
+            </div>
+          `;
+          
+          container.appendChild(postElement);
+        });
+      }
+
+      // 初始化加载第一页文章
+      fetchNewsArticles();
+
+      // 加载更多按钮点击事件
+      document.getElementById('load-more').addEventListener('click', function() {
+        const nextPage = parseInt(this.dataset.page) || currentPage + 1;
+        fetchNewsArticles(nextPage, false);
+      });
+
+      // 导航栏滚动效果
+      const navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 10) {
+          navbar.classList.add('bg-white', 'shadow-md');
+          navbar.classList.remove('bg-white/95');
+        } else {
+          navbar.classList.remove('bg-white', 'shadow-md');
+          navbar.classList.add('bg-white/95');
+        }
+      });
+
+      // 移动菜单切换
+      document.getElementById('menu-toggle').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      // FAQ切换
+      document.querySelectorAll('.faq-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+          const content = this.nextElementSibling;
+          const icon = this.querySelector('i');
+          
+          content.classList.toggle('hidden');
+          icon.classList.toggle('rotate-180');
+        });
+      });
+
+      // 价格切换
+      document.getElementById('monthly-toggle').addEventListener('click', function() {
+        this.classList.add('bg-primary', 'text-white');
+        document.getElementById('annual-toggle').classList.remove('bg-primary', 'text-white');
+        
+        document.getElementById('basic-price').textContent = '¥19';
+        document.getElementById('pro-price').textContent = '¥49';
+        document.getElementById('enterprise-price').textContent = '¥129';
+      });
+
+      document.getElementById('annual-toggle').addEventListener('click', function() {
+        this.classList.add('bg-primary', 'text-white');
+        document.getElementById('monthly-toggle').classList.remove('bg-primary', 'text-white');
+        
+        document.getElementById('basic-price').textContent = '¥15';
+        document.getElementById('pro-price').textContent = '¥39';
+        document.getElementById('enterprise-price').textContent = '¥103';
+      });
+
+      // 视频弹窗功能
+      const videoBtn = document.getElementById('video-btn');
+      const videoModal = document.getElementById('video-modal');
+      const closeModal = document.getElementById('close-modal');
+      const bilibiliVideo = document.getElementById('bilibili-video');
+
+      videoBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        videoModal.classList.remove('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+          videoModal.querySelector('div').classList.remove('scale-95');
+          videoModal.querySelector('div').classList.add('scale-100');
+        }, 10);
+        // 重置视频源以触发重新加载
+        bilibiliVideo.src = bilibiliVideo.src;
+      });
+
+      closeModal.addEventListener('click', function() {
+        videoModal.querySelector('div').classList.remove('scale-100');
+        videoModal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => {
+          videoModal.classList.add('opacity-0', 'pointer-events-none');
+        }, 300);
+      });
+
+      // 点击模态框外部关闭
+      videoModal.addEventListener('click', function(e) {
+        if (e.target === videoModal) {
+          closeModal.click();
+        }
+      });
+
+      // 平滑滚动
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+          
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 80,
+              behavior: 'smooth'
+            });
+            
+            // 如果移动菜单是打开的，则关闭
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (!mobileMenu.classList.contains('hidden')) {
+              mobileMenu.classList.add('hidden');
+            }
+          }
+        });
+      });
+    });
+  </script>
+</body>
 </html>
