@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>活动资讯</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36BFFA',
+                        accent: '#FF7D00',
+                        dark: '#1D2939',
+                        'dark-gray': '#4B5563',
+                        'light-gray': '#F9FAFB'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .bg-gradient-overlay {
+                background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.5s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-light-gray text-dark">
+        <!-- 英雄区域 -->
+    <section class="relative h-[40vh] md:h-[50vh] overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80 z-10"></div>
+        <img src="https://picsum.photos/id/1/1600/800" alt="科技新闻背景" class="w-full h-full object-cover">
+        <div class="absolute inset-0 z-20 flex items-center justify-center">
+            <div class="text-center text-white px-4">
+                <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold mb-4 text-shadow">欢乐工坊活动中心</h1>
+                <p class="text-[clamp(1rem,2vw,1.25rem)] max-w-2xl mx-auto opacity-90">
+                    了解最新活动动态，福利大放送
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <main class="container mx-auto px-4 py-12">
+        <!-- 新闻列表 -->
+        <section class="mb-16">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl md:text-3xl font-bold text-dark">最新资讯</h2>
+                <div class="flex items-center space-x-2">
+                    <span class="text-dark-gray">排序：</span>
+                    <select id="sort-select" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-dark-gray focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="newest">最新发布</option>
+                        <option value="popular">最受欢迎</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 加载指示器 -->
+            <div id="loader" class="flex justify-center py-12 hidden">
+                <div class="w-10 h-10 border-4 border-gray-200 border-t-primary rounded-full animate-spin"></div>
+            </div>
+            
+            <!-- 新闻网格 -->
+            <div id="news-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- 新闻卡片将通过JavaScript动态插入 -->
+            </div>
+            
+            <!-- 空状态提示 -->
+            <div id="empty-state" class="text-center py-16 hidden">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fa fa-newspaper-o text-gray-400 text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-dark mb-2">暂无新闻</h3>
+                <p class="text-dark-gray max-w-md mx-auto">该分类下暂无新闻内容，请稍后再试</p>
+            </div>
+        </section>
+        
+        <!-- 分页控件 -->
+        <div id="pagination" class="flex justify-center mt-12">
+            <div class="inline-flex rounded-md shadow-sm">
+                <button id="prev-page" class="px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-dark-gray rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa fa-chevron-left mr-2"></i> 上一页
+                </button>
+                <button id="next-page" class="px-4 py-2 border border-gray-300 border-l-0 bg-white text-sm font-medium text-dark-gray rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    下一页 <i class="fa fa-chevron-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+   <!-- 页脚 -->
+  <footer class="bg-dark text-white pt-16 pb-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
+        <div class="lg:col-span-2">
+          <div class="flex items-center mb-6">
+            <div class="w-10 h-10 rounded-lg bg-gradient-blue flex items-center justify-center">
+              <i class="fa fa-bolt text-white text-xl"></i>
+            </div>
+            <span class="ml-2 text-xl font-bold text-white">欢乐工坊工作室</span>
+          </div>
+          <p class="text-white/60 mb-6 max-w-md">专注于迷你世界玩家创作的平台，提供创作工具、资源分享、团队协作等功能，帮助玩家更高效地创作和分享迷你世界作品。</p>
+          <div class="flex space-x-4">
+            <a href="https://live.kuaishou.com/profile/a826051978" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-custom">
+  <img src="kuaishou.svg" alt="快手" class="w-5 h-5">
+</a>
+
+<a href="https://space.bilibili.com/690542467" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-custom">
+  <img src="bilibili.svg" alt="哔哩哔哩" class="w-5 h-5">
+</a>
+
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-6">产品</h4>
+          <ul class="space-y-3">
+            <li><a href="#features" class="text-white/60 hover:text-white transition-custom">工作室服务</a></li>
+            <li><a href="#news" class="text-white/60 hover:text-white transition-custom">官方资讯</a></li>
+            <li><a href="#testimonials" class="text-white/60 hover:text-white transition-custom">创始团队</a></li>
+            <li><p>官方qq：2904310938</a><p></li>
+            <li><p>官方邮箱：2904310938@qq.com</a><p></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-6">资源</h4>
+          <ul class="space-y-3">
+            <li><a href="https://hlgf001.top/ugc" class="text-white/60 hover:text-white transition-custom">创作教程</a></li>
+            <li><a href="https://hlgf001.top/ugc" class="text-white/60 hover:text-white transition-custom">API文档</a></li>
+            <li><a href="https://hlgf001.top/index/forums" class="text-white/60 hover:text-white transition-custom">创作者社区</a></li>
+            <li><a href="act/news.html" class="text-white/60 hover:text-white transition-custom">活动公告</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-6">关于我们</h4>
+          <ul class="space-y-3">
+            <li><a href="faq.htm" class="text-white/60 hover:text-white transition-custom">团队介绍</a></li>
+            <li><a href="https://ecnlh84m8uat.feishu.cn/share/base/form/shrcnXx9muF0ZeRH4MjEr7IBbKc" class="text-white/60 hover:text-white transition-custom">加入我们</a></li>
+            <li><a href="help.htm" class="text-white/60 hover:text-white transition-custom">联系方式</a></li>
+            
+   
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <p class="text-white/60 text-sm mb-4 md:mb-0">© 2025 欢乐工坊工作室. 保留所有权利。</p>
+        <!--备案-->
+<link rel="stylesheet" href="https://scdn.星.fun/icp.css">
+<div class="github-badge">
+  <span class="badge-subject">雾备</span>
+  <a style="color:#fff" href="https://icp.wudu.ltd/id.php?keyword=17705432" rel="external" target="_blank">
+    <span class="badge-value bg-cai">17705432号</span>
+  </a>
+</div>
+<!--备案end-->
+
+<!--安全签章-->
+ <div title="MySSL 安全签章" id="myssl_seal" onclick="window.open('https://myssl.com/seal/detail?domain=hlgf001.top','MySSL安全签章','height=800,width=470,top=0,right=0,toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,status=no')" style="text-align: center"><img src="https://sealres.myssl.com/seal/img/1x/seal.png?domain=hlgf001.top" alt="MySSL 安全签章" style="width: 100px; height: auto; cursor: pointer"></div>
+<!--安全签章end-->
+        </div>
+        <div class="flex space-x-6">
+          
+          
+        </div>
+      </div>
+    </div>
+<!--底部波浪开始-->
+<div class="wiiuii_layout">
+<svg class="editorial"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 24 150 28"
+     preserveAspectRatio="none">
+ <defs>
+ <path id="gentle-wave"
+ d="M-160 44c30 0 
+    58-18 88-18s
+    58 18 88 18 
+    58-18 88-18 
+    58 18 88 18
+    v44h-352z" />
+  </defs>
+  <g class="parallax">
+   <use xlink:href="#gentle-wave" rel="external nofollow"  rel="external nofollow"  rel="external nofollow"  x="50" y="0" fill="#4579e2"/>
+   <use xlink:href="#gentle-wave" rel="external nofollow"  rel="external nofollow"  rel="external nofollow"  x="50" y="3" fill="#3461c1"/>
+   <use xlink:href="#gentle-wave" rel="external nofollow"  rel="external nofollow"  rel="external nofollow"  x="50" y="6" fill="#2d55aa"/>  
+  </g>
+</svg>
+</div>
+<style type='text/css'>
+.parallax > use{animation: move-forever 12s linear infinite;}.parallax > use:nth-child(1){animation-delay: -2s;}.parallax > use:nth-child(2){animation-delay: -2s; animation-duration: 5s;}.parallax > use:nth-child(3){animation-delay: -4s; animation-duration: 3s;}@keyframes move-forever{0%{transform: translate(-90px, 0%);} 100%{transform: translate(85px, 0%);}}.wiiuii_layout{width: 100%;height: 40px;position: relative;overflow: hidden;z-index: 1;background: var(--footer-bg);}.editorial{display: block; width: 100%; height: 40px; margin: 0;}
+</style>
+<!--底部波浪结束-->
+  </footer>
+
+
+    <script>
+        // 配置WordPress API端点
+        const WP_API_URL = 'https://hlgf001.top/index/wp-json/wp/v2'; // 替换为你的WordPress网站URL
+        const CATEGORY_ID = 4; // 替换为你想要显示的分类ID
+        const POSTS_PER_PAGE = 9; // 每页显示的文章数量
+        
+        let currentPage = 1; // 当前页码
+        let totalPages = 1; // 总页数
+        let sortBy = 'newest'; // 排序方式
+        
+        // 页面加载时获取指定分类的新闻
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNews();
+            
+            // 移动端菜单切换
+            const menuToggle = document.getElementById('menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            menuToggle.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('opacity-0')) {
+                    mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
+                    mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    menuToggle.innerHTML = '<i class="fa fa-times"></i>';
+                } else {
+                    mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+                    mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+                    menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+                }
+            });
+            
+            // 排序选择器
+            const sortSelect = document.getElementById('sort-select');
+            sortSelect.addEventListener('change', () => {
+                sortBy = sortSelect.value;
+                currentPage = 1;
+                loadNews();
+            });
+            
+            // 上一页按钮点击事件
+            document.getElementById('prev-page').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadNews();
+                }
+            });
+            
+            // 下一页按钮点击事件
+            document.getElementById('next-page').addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadNews();
+                }
+            });
+            
+            // 导航栏滚动效果
+            window.addEventListener('scroll', () => {
+                const header = document.querySelector('header');
+                if (window.scrollY > 50) {
+                    header.classList.add('py-2', 'shadow-md');
+                    header.classList.remove('py-4', 'shadow-sm');
+                } else {
+                    header.classList.add('py-4', 'shadow-sm');
+                    header.classList.remove('py-2', 'shadow-md');
+                }
+            });
+        });
+        
+        // 加载新闻数据
+        function loadNews() {
+            // 显示加载指示器
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('news-container').innerHTML = '';
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            // 构建API请求URL
+            let url = `${WP_API_URL}/posts?categories=${CATEGORY_ID}&per_page=${POSTS_PER_PAGE}&page=${currentPage}`;
+            
+            // 添加排序参数
+            if (sortBy === 'popular') {
+                url += '&orderby=comment_count&order=desc';
+            }
+            
+            // 发送API请求
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络请求失败');
+                    }
+                    
+                    // 解析分页信息
+                    const linkHeader = response.headers.get('Link');
+                    if (linkHeader) {
+                        parsePagination(linkHeader);
+                    }
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    // 渲染新闻列表
+                    renderNews(data);
+                })
+                .catch(error => {
+                    console.error('获取新闻数据失败:', error);
+                    showEmptyState('获取新闻数据失败，请稍后再试');
+                })
+                .finally(() => {
+                    // 隐藏加载指示器
+                    document.getElementById('loader').classList.add('hidden');
+                    
+                    // 更新分页按钮状态
+                    updatePaginationButtons();
+                });
+        }
+        
+        // 解析分页信息
+        function parsePagination(linkHeader) {
+            const links = linkHeader.split(', ');
+            totalPages = 1;
+            
+            links.forEach(link => {
+                if (link.includes('rel="last"')) {
+                    const match = link.match(/page=(\d+)/);
+                    if (match && match[1]) {
+                        totalPages = parseInt(match[1]);
+                    }
+                }
+            });
+        }
+        
+        // 渲染新闻列表
+        function renderNews(posts) {
+            if (posts.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            const newsContainer = document.getElementById('news-container');
+            
+            posts.forEach((post, index) => {
+                // 添加延迟动画效果
+                setTimeout(() => {
+                    const newsCard = createNewsCard(post);
+                    newsCard.classList.add('animate-fade-in');
+                    newsContainer.appendChild(newsCard);
+                }, index * 100);
+            });
+        }
+        
+        // 创建新闻卡片
+        function createNewsCard(post) {
+            const card = document.createElement('div');
+            card.className = 'card-hover bg-white rounded-xl overflow-hidden shadow-md';
+            
+            // 获取特色图片
+            let featuredImage = '';
+            if (post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0].source_url) {
+                featuredImage = post._embedded['wp:featuredmedia'][0].source_url;
+            }
+            
+            // 获取分类信息
+            let categoryName = '活动'; // 默认使用指定分类名称
+            
+            // 获取评论数量
+            let commentCount = post.comment_count || 0;
+            
+            // 构建卡片HTML
+            card.innerHTML = `
+                <div class="relative overflow-hidden">
+                    ${featuredImage ? `
+                        <img src="${featuredImage}" alt="${post.title.rendered}" class="w-full h-56 object-cover transition-transform duration-500 hover:scale-105">
+                    ` : `
+                        <div class="w-full h-56 bg-gray-100 flex items-center justify-center">
+                            <i class="fa fa-image text-gray-400 text-5xl"></i>
+                        </div>
+                    `}
+                    <span class="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">${categoryName}</span>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center text-sm text-dark-gray mb-3">
+                        <span class="flex items-center mr-4">
+                            <i class="fa fa-clock-o mr-1"></i> ${formatDate(post.date)}
+                        </span>
+                        <span class="flex items-center">
+                            <i class="fa fa-comment-o mr-1"></i> ${commentCount} 评论
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-bold text-dark mb-3 hover:text-primary transition-colors line-clamp-2">
+                        <a href="${post.link}">${post.title.rendered}</a>
+                    </h2>
+                    <p class="text-dark-gray mb-4 line-clamp-3">${post.excerpt.rendered}</p>
+                    <a href="${post.link}" class="inline-flex items-center text-primary font-medium hover:text-primary/80 transition-colors">
+                        阅读全文 <i class="fa fa-long-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        
+        // 显示空状态
+        function showEmptyState(message = '该分类下暂无新闻内容') {
+            const emptyState = document.getElementById('empty-state');
+            const emptyMessage = emptyState.querySelector('p');
+            emptyMessage.textContent = message;
+            emptyState.classList.remove('hidden');
+        }
+        
+        // 更新分页按钮状态
+        function updatePaginationButtons() {
+            const prevBtn = document.getElementById('prev-page');
+            const nextBtn = document.getElementById('next-page');
+            
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage >= totalPages;
+            
+            prevBtn.classList.toggle('opacity-50', currentPage === 1);
+            nextBtn.classList.toggle('opacity-50', currentPage >= totalPages);
+        }
+    </script>
+</body>
+</html>
